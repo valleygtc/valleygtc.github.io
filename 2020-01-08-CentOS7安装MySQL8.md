@@ -1,4 +1,5 @@
 # 安装
+## MariaDB的安装方法：
 MySQL 被 Oracle 收购后，CentOS7之后的官方仓库中就不再提供 MySQL，而是提供其开源版本 MariaDB。<br>
 MariaDB 的安装方法很简单：
 ```bash
@@ -9,9 +10,10 @@ $ sudo yum install mariadb-server
 $ sudo yum install mariadb
 ```
 
+## 使用社区仓库安装MySQL：
 若要安装 MySQL，需要添加 MySQL 社区提供的仓库：<br>
 首先在[这里](https://dev.mysql.com/downloads/repo/yum/)找到对应版本的 `.rpm` 文件的下载链接。<br>
-以 CentOS7，MySQL8 为例，执行命令：
+然后，以 CentOS7，MySQL8 为例，执行命令：
 
 ```
 $ wget https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm
@@ -20,7 +22,9 @@ $ yum install mysql80-community-release-el7-3.noarch.rpm
 $ yum install mysql-community-server
 ```
 
-但是因为这个仓库下载很慢，我们最好使用镜像源下载，这里我们以使用清华的 MySQL 镜像源为例：
+## 使用镜像源安装MySQL：
+由于社区提供的仓库下载速度很慢，我们最好使用镜像源下载，这里我们以使用清华的 MySQL 镜像源为例：
+
 ```bash
 $ cd /etc/yum.repos.d/
 $ touch tsinghua-mysql-community.repo
@@ -36,13 +40,17 @@ gpgcheck=0
 $ yum install mysql-community-server
 ```
 
-# 配置
+## 启动mysqld
 ```bash
-# 启动mysql
 $ systemctl start mysqld.service
+
+# 查看mysqld运行状态：
+$ systemctl status mysqld.service
 ```
 
-MySQL8 中的 root 密码不再是默认为空，而是在启动时随机生成一个密码，mysqld 会将其写到日志文件中，所以首先我们需要找到这个密码：
+# 配置
+MySQL8 中的 root 密码不再是默认为空，而是在启动时随机生成一个密码，mysqld 会将其写到日志文件中，所以首先我们需要到日志文件中找到这个密码：
+
 ```
 $ cat /var/log/mysqld.log | grep 'password'
 2020-01-08T03:43:14.175884Z 5 [Note] [MY-010454] [Server] A temporary password is generated for root@localhost: gerN_Zu=?9Pn
@@ -62,3 +70,6 @@ $ mysql_secure_installation
 ```
 $ systemctl restart mysqld.service
 ```
+
+# 参考：
+- [清华大学开源软件镜像站](https://mirrors.tuna.tsinghua.edu.cn/)
