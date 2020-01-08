@@ -1,4 +1,5 @@
 # 文章列表：
+- [2020-01-08-CentOS7安装MySQL8](./2020-01-08-CentOS7安装MySQL8.md)
 - [2019-12-04-Python_GIL](./2019-12-04-Python_GIL.md)
 - [2019-11-29-Python_asyncio](./2019-11-29-Python_asyncio.md)
 - [2019-11-28-pyenv使用手册](./2019-11-28-pyenv使用手册.md)
