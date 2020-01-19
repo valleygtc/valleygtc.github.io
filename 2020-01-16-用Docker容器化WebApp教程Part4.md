@@ -199,7 +199,7 @@ $ docker network create foo_net
 
 停止之前的 mysqld 容器，重新创建一个新的 mysqld 容器，并将其连入 foo_net 网络：
 ```bash
-$ docker container kill mysqld
+$ docker container stop mysqld
 
 $ docker run \
   --network=foo_net \

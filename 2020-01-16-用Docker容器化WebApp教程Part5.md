@@ -79,7 +79,7 @@ By default Compose sets up a single network for your app. Each container for a s
 
 在启动之前，我们需要将之前启动的正在运行的 `docker-demo` 和 `mysqd` 停止：
 ```bash
-$ docker container kill docker-demo mysqd
+$ docker container stop docker-demo mysqd
 ```
 
 然后，使用 docker-compose 启动：
