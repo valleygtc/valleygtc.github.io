@@ -136,6 +136,19 @@ networks:
 ```
 
 
+# docker-compose 常用命令：
+- `docker-compose up`：Create and start containers
+    - `-d/--detach`：默认是在前台运行，使用此参数后会在后台运行。
+- `docker-compose down`: Stops containers and removes containers, networks, volumes, and images created by up.
+- `docker-compose start [SERVICE...]`：Start services
+- `docker-compose stop [SERVICE...]`：Stop services
+- `docker-compose ps`：List containers
+
+- `docker-compose run [OPTIONS] SERVICE [COMMAND] [ARGS...]`: Run a one-off command
+
+- `docker-compose config`：Validate and view the Compose file
+
+
 # Bonus：容器自动重启策略
 我们可以在启动容器时使用 `--restart` 参数来设置重启策略，有四个值可供选择：
 - `no`：不自动重启，默认值。
