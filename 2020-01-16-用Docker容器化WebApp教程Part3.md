@@ -6,6 +6,7 @@
 - [用Docker容器化WebApp教程-Part2](https://github.com/valleygtc/valleygtc.github.io/blob/master/2020-01-16-用Docker容器化WebApp教程Part2.md)
 - [用Docker容器化WebApp教程-Part3](https://github.com/valleygtc/valleygtc.github.io/blob/master/2020-01-16-用Docker容器化WebApp教程Part3.md)
 - [用Docker容器化WebApp教程-Part4](https://github.com/valleygtc/valleygtc.github.io/blob/master/2020-01-16-用Docker容器化WebApp教程Part4.md)
+- [用Docker容器化WebApp教程-Part5](https://github.com/valleygtc/valleygtc.github.io/blob/master/2020-01-16-用Docker容器化WebApp教程Part5.md)
 
 
 项目的源代码可以在 [github](https://github.com/valleygtc/docker-demo) 上获取：
@@ -16,222 +17,108 @@ $ git clone https://github.com/valleygtc/docker-demo
 我的博客原文放在 github 上，[这里](https://github.com/valleygtc/valleygtc.github.io)。
 
 
-# 简介
-在本篇文章中，我们将给 docker-demo web app 加上 MySQL 数据库。
+# Docker 网络类型简介
+Docker 的虚拟化网络有多种类型：bridge，host，overlay，macvlan，none 等，不同类型的网络功能与用处有所不同。
+
+关于何时使用哪种类型的网络，简要概括如下：
+- `bridge`：如果在启动容器时不指定网络，默认会连接到一个 bridge 类型的默认网络。如果我们想要实现在同一宿主机上的多个容器之间的通信，一般会自己创建一个 bridge 类型的网络，将容器连到其上。
+- `host`：在 host 网络下运行的容器会和宿主机使用同一个网络栈。注意只有 Linux 支持此种类型，Windows 与 Mac 不支持。见[文档](https://docs.docker.com/network/host/)
+- `overlay`：如果我们想要实现在不同宿主机上的多个容器之间的通信，使用这种类型的网络。
+- `macvlan`：在 macvlan 类型的网络中，每一个容器都有自己的 MAC 地址，Docker daemon 会根据 MAC 地址来决定将网络数据转发到哪个容器。
+- `none`：如果我们的容器不需要网络，那么就使用这个。
 
 
-# 使用 mysql Docker 镜像：
-```bash
-# 从镜像仓库拉取 mysql 8.0 镜像
-$ docker pull mysql:8.0
-
-# 首先，我们需要创建挂载目录：data。注意我们一定要确保在 mysql 启动时 data 目录就是存在的，以便 mysql 容器启动时完成初始化工作。
-$ mkdir data
-
-# 运行
-$ docker run \
-  --name=mysqld \
-  -e MYSQL_ROOT_PASSWORD=foopassword \
-  -e MYSQL_DATABASE=docker_demo \
-  -v "$PWD/data":/var/lib/mysql \
-  --rm -d mysql:8.0;
+# 网络管理
+Docker 在启动时会自动创建 3 个网络：bridge，host 和 none，如下：
+```
+# docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+69791a0e50ab        bridge              bridge              local
+f89815bfb316        host                host                local
+764385936d61        none                null                local
 ```
 
-解释：
-1. `-e MYSQL_ROOT_PASSWORD=foopassword`：我们使用 root 用户，密码为：`foopassword`。
-2. `-e MYSQL_DATABASE=docker_demo`：我们使用仓库名为 `docker_demo`。
-3. `-v "$PWD/data":/var/lib/mysql`：将数据目录挂载到本机的 `$PWD/data` 目录。
-
-注：
-1. 在 Windows 系统中 `$PWD` 可能会导致错误，需要手动输入绝对路径，如：`-v "D:\\code\\demo\\docker-demo\\data":/var/lib/mysql`。
-2. 注意如果我们挂载的目录（即 `$PWD/data` 目录）中已经有数据库文件了，那么我们声明的所有环境变量都没有作用，MySQL 容器会直接使用已存在的数据库及用户。
-
-
-我们使用以下命令连接到 mysqld 容器：
-```bash
-$ docker run -it \
-  --link=mysqld \
-  --rm mysql:8.0 \
-  mysql -hmysqld -uroot -p;
+docker 创建虚拟网络其实是使用更改操作系统的 `iptables` 规则来实现的，比如我们可以使用 `ip a` 命令来查看本机 ip：
+```
+# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:15:5d:02:97:0e brd ff:ff:ff:ff:ff:ff
+    inet 172.26.37.34/28 brd 172.26.37.47 scope global noprefixroute dynamic eth0
+       valid_lft 86163sec preferred_lft 86163sec
+    inet6 fe80::80c4:f8d7:bca9:8744/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
+3: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default
+    link/ether 02:42:e1:a2:a0:71 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::42:e1ff:fea2:a071/64 scope link
+       valid_lft forever preferred_lft forever
 ```
 
-我们使用 root 用户登录，输入密码：`foopassword`，登录成功后我们可以看一下，`docker_demo` 数据库确实已经被自动创建了：
-```sql
-mysql> show databases;
-+--------------------+
-| Database           |
-+--------------------+
-| docker_demo        |
-| information_schema |
-| mysql              |
-| performance_schema |
-| sys                |
-+--------------------+
-5 rows in set (0.01 sec)
+其中的 `eth0` 是我们本机在以太网的网络，可以看到在 `eth0` 网络中，本机的 ip 是 `172.26.37.34`。<br>
+其中的`docker0` 就是 Docker 的默认 bridge 类型虚拟网络，是 Docker 启动时自动创建，在这个网络中，我们的 ip 是 `172.17.0.1`。
+
+我们可以使用命令来创建虚拟网络，如下：
+```
+# docker network create foo_net
+6e074a3d242edbc378e4db0114982f7c3046daaf95a3248ee4e7d7d611f53d45
+
+# docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+69791a0e50ab        bridge              bridge              local
+6e074a3d242e        foo_net             bridge              local
+f89815bfb316        host                host                local
+764385936d61        none                null                local
 ```
 
-有一点需要注意：如果我们挂载的数据目录没有内容，mysql 在启动时会对其进行初始化，此时不对外提供连接服务，直至完成。所以在刚启动 mysqld 时可能无法连接上去，需要等一会才行。见[文档]((https://hub.docker.com/_/mysql))中的 “No connections until MySQL init completes”一节。
-
-我们可以使用 `docker container logs` 命令查看其运行细节。
-
-
-# docker-demo 实现：
-项目代码：
-```bash
-$ git checkout 3
+我们使用 Docker CLI 来创建了一个 bridge 类型的名为 foo_net 的网络，我们再使用 `ip a` 命令来观察：
+```
+# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:15:5d:02:97:0e brd ff:ff:ff:ff:ff:ff
+    inet 172.26.37.34/28 brd 172.26.37.47 scope global noprefixroute dynamic eth0
+       valid_lft 86384sec preferred_lft 86384sec
+    inet6 fe80::80c4:f8d7:bca9:8744/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
+3: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default
+    link/ether 02:42:e1:a2:a0:71 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::42:e1ff:fea2:a071/64 scope link
+       valid_lft forever preferred_lft forever
+104: br-6e074a3d242e: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default
+    link/ether 02:42:b7:50:19:2d brd ff:ff:ff:ff:ff:ff
+    inet 172.22.0.1/16 brd 172.22.255.255 scope global br-6e074a3d242e
+       valid_lft forever preferred_lft forever
 ```
 
-为了演示 web app 与数据库结合起来的用法，在 `app/model.py` 中我们建表：
-```python
-class Student(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), nullable=False)
-    age = db.Column(db.Integer)
-    address = db.Column(db.String(64))
-
-    def readyToJSON(self, keys):
-        """
-        Params:
-            keys [Iterable[str]]
-        """
-        d = {}
-        for k in keys:
-            v = getattr(self, k)
-            d[k] = v
-        return d
-
-    def __repr__(self):
-        return '<Student %r>' % self.id
-```
-
-我们实现了两个接口，
-1. `GET /student/`：返回所有的学生
-2. `GET /student/add?name=[str]&age=[int]&address=[str]`：添加学生。
-
-在 `app/views.py` 文件中的代码如下：
-```python
-@bp_main.route('/student/', methods=['GET'])
-def hanlde_show_students():
-    records = Student.query.all()
-
-    columns = ['id', 'name', 'age', 'address']
-    return jsonify(
-        success=True,
-        data=[r.readyToJSON(columns) for r in records]
-    )
+可以看到，多出的一个 `br-6e074a3d242e` 就是我们自己创建的虚拟网络，在这个网络中，本机的 ip 是 `172.22.0.1`。
 
 
-"""
-GET ?name=[str]&age=[int]&address=[str]
-age, address is optional.
-"""
-@bp_main.route('/student/add', methods=['GET'])
-def hanlde_add_student():
-    name = request.args.get('name')
-    if name is None:
-        return jsonify(
-            success=False,
-            msg='You must assign a name field.'
-        )
+# 用户创建的 bridge 类型网络和默认 brige 类型网络
+我们在启动容器时，使用 `--network` 参数来指定我们想要连接到的网络。<br>
+bridge 类型是我们最常用的网络类型。在启动容器时，如果不声明 `--network` 参数，那么默认会连接到 Docker 的那个名为 bridge 的默认网络上。在该网络上，我们可以使用 ip 地址来访问到在此网络上的其他容器。
 
-    age = request.args.get('age')
-    if age is not None:
-        age = int(age)
-
-    address = request.args.get('address')    
-    s = Student(name=name, age=age, address=address)
-    db.session.add(s)
-    db.session.commit()
-
-    return jsonify(
-        success=True,
-        msg=f'Add student {name} success.'
-    )
-```
-
-
-# 将 docker-demo 容器化：
-我们的 `Dockerfile` 文件如下：
-```dockerfile
-FROM python:3.7
-LABEL maintainer="gutianci@pwrd.com"
-
-# 将文件复制到 image 中。
-COPY . /docker-demo
-
-# pip 安装程序依赖
-WORKDIR /docker-demo
-RUN python3 -m venv .venv
-RUN . .venv/bin/activate && pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-
-# 声明我们的程序运行需要的环境变量
-# 可以在 run 时覆盖
-ENV FLASK_APP=manage.py
-ENV FLASK_ENV=production
-ENV DATABASE_URI='mysql+mysqlconnector://{user}:{password}@{localhost}/{db_name}?charset=utf8'
-ENV PORT=5000
-
-EXPOSE 5000
-CMD . .venv/bin/activate && python run.py
-```
-
-解释：我们的程序需要 `FLASK_APP`，`FLASK_ENV`，`DATABASE_URI`，`PORT` 环境变量，`Dockerfile` 中的声明其实仅作为文档，我们可以在运行时声明这些环境变量。
-
-
-构建镜像：
-```bash
-$ docker image build --tag=docker-demo:3 .
-```
-
-
-# 运行：
-```bash
-$ docker run \
-  --link=mysqld \
-  --name='docker-demo' \
-  -e FLASK_ENV=production \
-  -e DATABASE_URI='mysql+mysqlconnector://root:foopassword@mysqld/docker_demo?charset=utf8' \
-  -p 5000:5000 \
-  -v "$PWD/log":/docker-demo/log \
-  --rm -d 'docker-demo:3';
-```
-
-解释：
-1. 因为容器之间的网络是隔离开的，所以我们需要使用 `--link=mysqld` 参数指示 Docker 将 docker-demo 与 mysqld 容器连接起来。
-
-注：其实官方不建议再使用 `--link` 参数了，见[这里](https://docs.docker.com/network/links/)。如果想要将容器连接起来，推荐使用“user-defined networks”的方式，详见[文档](https://docs.docker.com/v17.09/engine/userguide/networking/)。但是我们在这里为了简便期间，就这样用了。
-
-
-我们的程序需要使用名为 student 的数据表，我们需要手动创建，首先，连接到运行中的 `docker-demo` 容器：
-```bash
-$ docker container exec -it 'docker-demo' bash;
-```
-
-然后：
-```bash
-# 激活虚拟环境：
-$ . .venv/bin/activate
-
-# 创建表：
-$ flask create_tables;
-```
-
-
-# 验证程序正常运行：
-```bash
-$ curl http://127.0.0.1:5000/
-Hello, World!
-
-$ curl http://127.0.0.1:5000/student/
-{"data":[],"success":true}
-
-$ curl http://127.0.0.1:5000/student/add?name=gutianci&age=22
-{"msg":"Add student gutianci success.","success":true}
-
-$ curl http://127.0.0.1:5000/student/
-{"data":[{"address":null,"age":null,"id":1,"name":"gutianci"}],"success":true}
-```
+在实际使用中，一般我们都会自己创建 bridge 类型的网络，将容器连到其上。这种自己创建的 bridge 类型网络，相比于默认的 bridge 网络有很多的优点：
+1. 自建 bridge 网络中，默认所有容器的端口对所有同一网络的其他容器开放，对外不开放。而在默认 bridge 网络中，必须使用 `-p` 参数将端口绑定到本机相应端口上，但是这样就自动对外界网络也开放了。
+2. 自建 bridge 网络提供了 DNS 解析服务，我们可以直接使用容器名作为域名来访问其他容器。而默认 bridge 类型网络中，我们只能使用 ip 地址来访问其他容器。
+3. 容器可以在运行时可以随时与网络连接或断开连接。而在默认的 bridge 网络上，需要停止然后重新创建容器来使用不同的网络参数。
+等
 
 
 # 参考：
-- [DockerHub-mysql](https://hub.docker.com/_/mysql)
+- [docker network overview](https://docs.docker.com/network/)
+- [Use bride networks](https://docs.docker.com/network/bridge/)
+- [Use host networking](https://docs.docker.com/network/host/)

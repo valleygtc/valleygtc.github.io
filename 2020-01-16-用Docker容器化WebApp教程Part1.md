@@ -6,6 +6,7 @@
 - [用Docker容器化WebApp教程-Part2](https://github.com/valleygtc/valleygtc.github.io/blob/master/2020-01-16-用Docker容器化WebApp教程Part2.md)
 - [用Docker容器化WebApp教程-Part3](https://github.com/valleygtc/valleygtc.github.io/blob/master/2020-01-16-用Docker容器化WebApp教程Part3.md)
 - [用Docker容器化WebApp教程-Part4](https://github.com/valleygtc/valleygtc.github.io/blob/master/2020-01-16-用Docker容器化WebApp教程Part4.md)
+- [用Docker容器化WebApp教程-Part5](https://github.com/valleygtc/valleygtc.github.io/blob/master/2020-01-16-用Docker容器化WebApp教程Part5.md)
 
 
 项目的源代码可以在 [github](https://github.com/valleygtc/docker-demo) 上获取：
@@ -106,17 +107,3 @@ $ curl http://127.0.0.1:5000/
 ```bash
 Hello, World!
 ```
-
-
-# --network=host mode
-Docker 在关于容器的网络虚拟化方面有多种模式（network mode）：bridge，host，overlay，macvlan，none等。详细见：[Docker文档-network部分](https://docs.docker.com/network/)。
-
-如果没有显式声明，默认是使用 `bridge` 模式来运行容器，在该模式下 Docker 会创建一个默认名为 `docker0` 的网桥，宿主机和容器的网络是隔离开的，宿主机和每一个容器都有各自的 IP，这也是我们之所以需要将端口绑定在一起的原因。
-我们也可以使用 `host` 模式来运行容器，在此模式下容器会和宿主机使用同一个网络栈。因此，所有容器监听的端口都会直接绑定到宿主机上（因为二者使用的是同一个网络栈），`-p` 参数无需声明，即使是声明了也会被忽略。
-
-因此我们也可以直接使用 host 模式来运行容器：
-```bash
-$ docker run --network=host -d docker-demo:1
-```
-
-注意：只有 Linux 系统才支持 host 模式，Windows 与 Mac 不支持。
