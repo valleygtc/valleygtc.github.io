@@ -136,6 +136,23 @@ networks:
 ```
 
 
+# Bonus：容器自动重启策略
+我们可以在启动容器时使用 `--restart` 参数来设置重启策略，有四个值可供选择：
+- `no`：不自动重启，默认值。
+- `on-failure`：只有在程序异常退出时（程序返回值为非零）才会自动重启。
+- `always`：总是自动重启。
+- `unless-stopped`：总是自动重启，除非之前手动将其停止了。
+
+使用这个参数我们就可以实现“程序挂掉自动重启”和“容器开机自启”的功能。
+
+其中需要注意，因为容器自动重启策略其实是由 Docker daemon 来管理的，所以如果想要实现容器开机自启，那么首先我们一定要将 Docker daemon 服务加入开机自启：
+```
+$ systemctl enable docker
+```
+
+具体见文档：[Start containers automatically](https://docs.docker.com/config/containers/start-containers-automatically/)
+
 # 参考：
 - [docker-compose官方文档](https://docs.docker.com/compose/)
 - [文档：Networking in Compose](https://docs.docker.com/compose/networking/)
+- [文档：compose file reference](https://docs.docker.com/compose/compose-file/)
