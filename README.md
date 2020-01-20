@@ -1,4 +1,5 @@
 # 文章列表：
+- [2020-01-20-搭建私有GitLab平台](./2020-01-20-搭建私有GitLab平台.md)
 - [2020-01-20-搭建私人Docker镜像仓库](./2020-01-20-搭建私人Docker镜像仓库.md)
 - [2020-01-16-用Docker容器化WebApp教程Part5](./2020-01-16-用Docker容器化WebApp教程Part5.md)
 - [2020-01-16-用Docker容器化WebApp教程Part4](./2020-01-16-用Docker容器化WebApp教程Part4.md)
