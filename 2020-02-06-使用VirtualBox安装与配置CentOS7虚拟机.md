@@ -41,8 +41,8 @@ $ ip a
        valid_lft forever preferred_lft forever
 2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
     link/ether 08:00:27:d5:51:35 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.31.6/24 brd 192.168.31.255 scope global noprefixroute enp0s3
-       valid_lft forever preferred_lft forever
+    inet 192.168.31.6/24 brd 192.168.31.255 scope global noprefixroute dynamic enp0s3
+       valid_lft 42638sec preferred_lft 42638sec
     inet6 fe80::bee7:ef4a:fee4:a050/64 scope link noprefixroute
        valid_lft forever preferred_lft forever
 ```
@@ -67,6 +67,10 @@ rtt min/avg/max/mdev = 0.026/0.064/0.077/0.021 ms
 ```
 $ ssh root@192.168.31.6
 ```
+
+
+\-----------------------
+# 注：在桥接网络模式下，将虚拟机网络由 DHCP 改为静态 IP 后就无法访问外部网络了，不清楚原因。以下内容暂时作废。
 
 
 # 设置虚拟机静态 IP：
