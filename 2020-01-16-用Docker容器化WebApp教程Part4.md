@@ -243,17 +243,17 @@ $ exit
 
 # 验证程序正常运行：
 ```bash
-$ curl http://127.0.0.1:5000/
+$ curl 'http://127.0.0.1:5000/'
 Hello, World!
 
-$ curl http://127.0.0.1:5000/student/
+$ curl 'http://127.0.0.1:5000/student/'
 {"data":[],"success":true}
 
-$ curl http://127.0.0.1:5000/student/add?name=gutianci&age=22
+$ curl 'http://127.0.0.1:5000/student/add?name=gutianci&age=22'
 {"msg":"Add student gutianci success.","success":true}
 
-$ curl http://127.0.0.1:5000/student/
-{"data":[{"address":null,"age":null,"id":1,"name":"gutianci"}],"success":true}
+$ curl 'http://127.0.0.1:5000/student/'
+{"data":[{"address":null,"age":22,"id":1,"name":"gutianci"}],"success":true}
 ```
 
 

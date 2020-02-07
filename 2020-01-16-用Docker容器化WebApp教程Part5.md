@@ -89,8 +89,8 @@ $ docker-compose up
 
 验证程序是在正常运行：
 ```bash
-$ curl http://127.0.0.1:5000/student/
-{"data":[{"address":null,"age":null,"id":1,"name":"gutianci"}],"success":true}
+$ curl 'http://127.0.0.1:5000/student/'
+{"data":[{"address":null,"age":22,"id":1,"name":"gutianci"}],"success":true}
 ```
 
 解释：<br>

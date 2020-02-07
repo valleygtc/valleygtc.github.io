@@ -102,7 +102,7 @@ $ docker run -p 5000:5000 -v "$PWD/log":/docker-demo/log -d docker-demo:2
 
 检查程序是否正常对外提供服务：
 ```bash
-$ curl http://127.0.0.1:5000/
+$ curl 'http://127.0.0.1:5000/'
 ```
 
 我们应该得到响应：
