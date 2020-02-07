@@ -18,11 +18,11 @@ $ git clone https://github.com/valleygtc/docker-demo
 
 
 # 简介
-在上一篇文章中我们给 docker-demo 加上了数据库。并使用 CLI 命令行启动 mysql 和 docker-demo 容器。<br>
-有一个问题，就是每次启动应用都需要我们手动输入命令，如果启动多个容器就需要手动输入多次命令，太繁琐了，而且也容易出错。<br>
+在上一篇文章中我们给 docker-demo 加上了数据库，并使用 docker CLI 来启动 mysql 和 docker-demo 容器。<br>
+这种做法有一个问题，就是每次启动应用都需要我们手动输入命令，如果启动多个容器就需要手动输入多次命令，繁琐且也容易出错。<br>
 我们可以使用 `docker-compose` 这个工具来解决这个问题。
 
-docker-compose 简单介绍：<br>
+docker-compose 的简单介绍：<br>
 一个应用程序通常需要与许多外部软件共同协作来运行，如一个 Web app 通常需要 MySQL，Redis，Nginx 等。docker-compose 允许我们使用 `docker-compose.yaml` 文件来声明配置，帮助我们同时运行多个容器。除此之外它还有许多其他功能，如可以帮助我们创建网络等。
 
 
@@ -38,12 +38,12 @@ $ sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docke
 $ sudo chmod +x /usr/local/bin/docker-compose
 ```
 
-github 访问太慢，我们可以使用国内镜像 DaoCloud 来下载：见[这里](https://get.daocloud.io/#install-compose)
+Github 访问太慢，我们可以使用国内镜像 [DaoCloud](https://get.daocloud.io/#install-compose) 来下载，方法如下：
 ```bash
 $ curl -L https://get.daocloud.io/docker/compose/releases/download/1.25.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
 ```
 
-注意：下载下来记得校验SHA256，和官方在[Github-release](https://github.com/docker/compose/releases)上发布的的对比，看看文件是否完整。
+注意：下载下来记得校验 SHA256，和官方在 [Github-release](https://github.com/docker/compose/releases) 上发布的的对比，确保文件完整且未被篡改。
 
 验证 docker-compose 是否可用：
 ```
@@ -74,9 +74,6 @@ services:
       - ./data:/var/lib/mysql
 ```
 
-By default Compose sets up a single network for your app. Each container for a service joins the default network and is both reachable by other containers on that network, and discoverable by them at a hostname identical to the container name.
-该文件的配置与我们在上篇文章使用的命令行参数是等价的。
-
 在启动之前，我们需要将之前启动的正在运行的 `docker-demo` 和 `mysqd` 停止：
 ```bash
 $ docker container stop docker-demo mysqd
@@ -94,7 +91,7 @@ $ curl 'http://127.0.0.1:5000/student/'
 ```
 
 解释：<br>
-在使用 `docker-compose up` 启动服务时，默认会自动创建一个 bridge 类型的网络，并将所有的容器连入此网络，所以在此例中我们可以不用声明网络，直接使用。如下：
+如果我们没有在 yaml 文件中声明网络，在使用 `docker-compose up` 启动服务时 docker-compose 默认会自动帮我们创建一个名为 `{project}_default` 的 bridge 类型的网络，并将所有的容器连入此网络。如下：
 ```
 # docker network ls
 NETWORK ID          NAME                  DRIVER              SCOPE
@@ -104,9 +101,9 @@ f89815bfb316        host                  host                local
 764385936d61        none                  null                local
 ```
 
-可以看到其中的 `docker-demo_default` 就是 docker-compose 帮助我们创建的默认网络。
+可以看到其中的 `docker-demo_default` 网络就是 docker-compose 自动帮助我们创建的。
 
-如果需要，我们也可以自定义网络，让 docker-compose 帮助我们创建。如下：
+如果需要，我们也可以在配置文件中自定义网络，让 docker-compose 在启动应用时帮我们创建。如下：
 ```yaml
 version: "3.7"
 services:
@@ -135,6 +132,8 @@ networks:
     driver: bridge
 ```
 
+该文件的配置与我们在上篇文章中使用的命令行参数是等价的，创建一个名为 `foo_net` 的 bridge 类型网络，启动 `docker-demo` 和 `mysqld` 两个容器并将他们接入此网络。
+
 
 # docker-compose 常用命令：
 - `docker-compose up`：Create and start containers
@@ -158,7 +157,7 @@ networks:
 
 使用这个参数我们就可以实现“程序挂掉自动重启”和“容器开机自启”的功能。
 
-其中需要注意，因为容器自动重启策略其实是由 Docker daemon 来管理的，所以如果想要实现容器开机自启，那么首先我们一定要将 Docker daemon 服务加入开机自启：
+其中需要注意，因为容器的自动重启策略其实是由 Docker daemon 来管理的，所以如果想要实现容器开机自启，那么首先我们一定要将 Docker daemon 服务加入开机自启：
 ```
 $ systemctl enable docker
 ```
