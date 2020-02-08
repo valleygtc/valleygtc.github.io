@@ -24,7 +24,7 @@ Docker 容器所接触的文件系统是与宿主机（host）隔离开的，容
 如果我们要将容器内数据持久化到本机，需要将容器内的路径挂载到本机文件系统。
 
 在本篇文章中，我们给 docker-demo 加上日志功能：
-将每一次请求的 User-Agent 记录到文件 `log/access.log`中，然后使用 `-v/--volumn [HOST_DIR]:[CONTAINER_DIR]` 参数将容器内路径挂载到本机。
+将每一次请求的 User-Agent 记录到文件 `log/access.log`中，然后使用 `-v/--volume [HOST_DIR]:[CONTAINER_DIR]` 参数将容器内路径挂载到本机。
 
 
 # docker-demo 实现：
