@@ -1,4 +1,5 @@
 # 文章列表：
+- [2021-12-30-个人所得税算法bug](2021-12-30-个人所得税算法bug.md)
 - [2020-02-07-用Docker容器化WebApp教程Part6](2020-02-07-用Docker容器化WebApp教程Part6.md)
 - [2020-02-06-使用VirtualBox安装与配置CentOS7虚拟机](./2020-02-06-使用VirtualBox安装与配置CentOS7虚拟机.md)
 - [2020-01-20-搭建私有GitLab平台](./2020-01-20-搭建私有GitLab平台.md)
